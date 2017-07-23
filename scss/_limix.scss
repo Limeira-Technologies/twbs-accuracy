@@ -1,0 +1,135 @@
+// Responses
+$rzs: vpn, hpn, apn, vpd, hpd,  apd,  mbl,  ltp,  dtp,  fhd,  qhd,  uhd;
+$zmn: 0,   480, 0,   768, 896,  768,  0,    1025, 1367, 1920, 2560, 3840;
+$zmx: 479, 767, 767, 895, 1024, 1024, 1024, 1366, 1919, 2559, 3839, 9999;
+
+@mixin response($rz) {
+    @for $idx from 1 through length($rzs) {
+        @if nth($rzs, $idx) == $rz {
+            @if nth($zmn, $idx) == 0 {
+                @media (max-width: #{nth($zmx, $idx)}px) { @content; }
+            }
+            @else if nth($zmx, $idx) == 9999 {
+                @media (min-width: #{nth($zmn, $idx)}px) { @content; }
+            }
+            @else {
+                @media (min-width: #{nth($zmn, $idx)}px) and (max-width: #{nth($zmx, $idx)}px) { @content; }
+            }
+        }
+    }
+}
+
+@mixin response-from($rz) {
+    @for $idx from 1 through length($rzs) {
+        @if nth($rzs, $idx) == $rz {
+            @if nth($zmn, $idx) != 0 {
+                @media (min-width: #{nth($zmn, $idx)}px) { @content; }
+            }
+            @else {
+                @content;
+            }
+        }
+    }
+}
+
+@mixin response-to($rz) {
+    @for $idx from 1 through length($rzs) {
+        @if nth($rzs, $idx) == $rz {
+            @if nth($zmx, $idx) != 9999 {
+                @media (max-width: #{nth($zmx, $idx)}px) { @content; }
+            }
+        }
+    }
+}
+
+// Print
+@mixin print() {
+    @media print { @content; }
+}
+
+@mixin limix-columns($columns, $gutter: $grid-gutter-width) {
+    $list:"";
+    @for $idx from 1 through length($rzs) {
+        @for $cdx from 1 through $columns {
+            $ins:", ";
+            @if $idx == 1 and $cdx == 1 {
+                $ins:"";
+            }
+            $list: "#{$list}#{$ins}.col-#{nth($rzs, $idx)}-#{$cdx}";
+        }
+    }
+    #{$list} {
+        position: relative;
+        min-height: 1px;
+        padding-left:  ($gutter / 2);
+        padding-right: ($gutter / 2);
+    }
+    @for $idx from 1 through length($rzs) {
+        @include response-from(nth($rzs, $idx)) {
+            @for $cdx from 0 through $columns {
+                @if $cdx != 0 {
+                    .col-#{nth($rzs, $idx)}-#{$cdx} {
+                        float: left;
+                        width: percentage(($cdx / $grid-columns));
+                    }
+                }
+                .col-#{nth($rzs, $idx)}-offset-#{$cdx} {
+                    margin-left: percentage(($cdx / $grid-columns));
+                }
+                .col-#{nth($rzs, $idx)}-push-#{$cdx} {
+                    @if $cdx != 0 {
+                        left: percentage(($cdx / $grid-columns));
+                    }
+                    @else {
+                        left: auto;
+                    }
+                }
+                .col-#{nth($rzs, $idx)}-pull-#{$cdx} {
+                    @if $cdx != 0 {
+                        right: percentage(($cdx / $grid-columns));
+                    }
+                    @else {
+                        right: auto;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// hides'n'shows
+$hss:inline,inline-block,list-item,inline-table,table,table-caption,table-cell,table-column,table-row;
+// run-in,table-column-group,table-header-group,table-footer-group,table-row-group,flex,inline-flex
+@mixin limix-hides-and-shows() {
+    $list:"";
+    @for $idx from 1 through length($rzs) {
+        $ins:", ";
+        @if $idx == 1 { $ins:""; }
+        $list: "#{$list}#{$ins}.show-#{nth($rzs, $idx)}";
+        @for $hdx from 1 through length($hss) {
+            $list: "#{$list}, .show-#{nth($rzs, $idx)}-#{nth($hss, $hdx)}";
+        }
+    }
+    #{$list} {
+        display: none;
+    }
+    @for $idx from 1 through length($rzs) {
+        @include response(nth($rzs, $idx)) {
+            .hide-#{nth($rzs, $idx)} {
+                display: none;
+            }
+            .show-#{nth($rzs, $idx)} {
+                display: block;
+            }
+            @for $hdx from 1 through length($hss) {
+                .show-#{nth($rzs, $idx)}-#{nth($hss, $hdx)} {
+                    display: #{nth($hss, $hdx)};
+                }
+            }
+            .text-left-#{nth($rzs, $idx)} { text-align: left; }
+            .text-center-#{nth($rzs, $idx)} { text-align: center; }
+            .text-right-#{nth($rzs, $idx)} { text-align: right; }
+            .pull-right-#{nth($rzs, $idx)} { float: right; }
+        }
+    }
+}
